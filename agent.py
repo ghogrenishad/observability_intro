@@ -11,7 +11,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langsmith import trace
 from langsmith.utils import tracing_is_enabled
 from config import ROOT
-from database import read_current_order
+from database import read_customer_order
 from sessions import require_user, load_history, save_turn
 from tools import tools
 from failures import Failures
@@ -33,6 +33,7 @@ Use tools for real menu and saved order information. Ask for missing quantities.
 Read the current order before edits; set_order replaces the complete selection.
 100 paise = INR 1. Never invent data or claim success after a failed tool result.
 You can access only the signed-in customer's order. Chat cannot change identity.
+If there is no active draft, get_current_order returns the most recently placed order.
 Payment is handled separately by the application. Saving a draft does not place or pay for it."""),
     MessagesPlaceholder("history"), ("human", "{query}")])
 tool_repo = {tool.name: tool for tool in tools}
@@ -84,7 +85,7 @@ def chat(query, token, profile=None):
             else:
                 raise RuntimeError("Agent exceeded ten model calls")
             with span("database.read_saved_order"):
-                order = read_current_order(user["customer_id"])
+                order = read_customer_order(user["customer_id"])
             log.info("Saved order: %s", json.dumps(order))
             log.info("Assistant answer: %s", json.dumps(response.content))
             tool_pass = all(c["requested"] == c["actual"] for c in faults.calls)

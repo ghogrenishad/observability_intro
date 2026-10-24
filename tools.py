@@ -5,7 +5,7 @@ from difflib import get_close_matches
 from langchain_core.tools import tool
 from langchain_core.runnables import RunnableConfig
 from models import NoInput, SearchInput, OrderInput, OrderItem
-from database import read_menu, read_current_order, save_draft
+from database import read_menu, read_customer_order, save_draft
 from sessions import require_user
 from instrumentation import span
 
@@ -25,10 +25,10 @@ def search_menu(query: str):
 
 @tool(args_schema=NoInput)
 def get_current_order(config: RunnableConfig):
-    """Read only the signed-in customer's saved current order."""
+    """Read the signed-in customer's active order or most recently placed order."""
     user = require_user(config["configurable"]["token"])
     with span("database.read_current_order"):
-        return read_current_order(user["customer_id"])
+        return read_customer_order(user["customer_id"])
 
 @tool(args_schema=OrderInput)
 def set_order(items: list[OrderItem], config: RunnableConfig):

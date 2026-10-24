@@ -37,6 +37,19 @@ def read_current_order(customer_id):
         return {"items": []}
     return get_owned_order(customer_id, row["order_id"])
 
+
+def read_customer_order(customer_id):
+    with connect_db() as db:
+        row = db.execute("""SELECT order_id FROM orders
+            WHERE customer_id = ? AND status IN ('draft', 'awaiting_payment', 'placed')
+            ORDER BY CASE WHEN status IN ('draft', 'awaiting_payment') THEN 0 ELSE 1 END,
+                     COALESCE(placed_at, created_at) DESC
+            LIMIT 1""", (customer_id,)).fetchone()
+    if not row:
+        return {"items": []}
+    return get_owned_order(customer_id, row["order_id"])
+
+
 # SOLUTION 5: validate first, then save the complete draft selection.
 def save_draft(customer_id, items, validate_total=None):
     if not items:

@@ -111,18 +111,21 @@ with order_column:
     st.subheader("Your order")
     order = call("GET", "/order")
     if order and order.get("items"):
+        if order.get("status") == "placed":
+            st.caption("Most recently placed order")
         for item in order["items"]:
             st.write(f"{item['quantity']} × {item['product_name']}")
             st.caption(f"₹{item['quantity']*item['unit_price_paise']/100:.2f}")
         st.divider()
         st.metric("Total", f"₹{order['total_paise']/100:.2f}")
-        confirmed = st.checkbox("I've reviewed my order")
-        if st.button("Place order", type="primary", disabled=not confirmed):
-            placed = call("POST", "/checkout", json={"order_id": order["order_id"]})
-            if placed:
-                st.session_state.placed = placed
-                st.rerun()
-        st.caption("Demo payment. No money is charged.")
+        if order.get("status") == "draft":
+            confirmed = st.checkbox("I've reviewed my order")
+            if st.button("Place order", type="primary", disabled=not confirmed):
+                placed = call("POST", "/checkout", json={"order_id": order["order_id"]})
+                if placed:
+                    st.session_state.placed = placed
+                    st.rerun()
+            st.caption("Demo payment. No money is charged.")
     elif order is not None:
         st.write("Your order is empty. Add something through the chat.")
     if st.session_state.get("placed"):

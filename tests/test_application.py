@@ -80,6 +80,10 @@ class ApplicationTests(unittest.TestCase):
         first = database.mark_paid(self.customer_id, order_id, "demo-" + order_id)
         database.mark_paid(self.customer_id, order_id, "demo-" + order_id)
         self.assertEqual(first["status"], "placed")
+        visible_order = database.read_customer_order(self.customer_id)
+        self.assertEqual(visible_order["order_id"], order_id)
+        self.assertEqual(visible_order["status"], "placed")
+        self.assertEqual(visible_order["items"][0]["product_id"], "cold_coffee")
         coffee = next(p for p in database.read_menu() if p["product_id"] == "cold_coffee")
         self.assertEqual(coffee["stock_quantity"], 19)
 

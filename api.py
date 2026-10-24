@@ -9,7 +9,7 @@ from uuid import uuid4
 from config import API_PORT, initialize_database
 from logging_setup import request_logger
 from sessions import sign_in, sign_out, require_user, load_history
-from database import read_menu, read_current_order, get_owned_order, mark_paid
+from database import read_menu, read_customer_order, get_owned_order, mark_paid
 from agent import chat
 from failures import Failures, PolicyBlocked
 from instrumentation import span
@@ -33,7 +33,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self.reply(200, read_menu())
             user = require_user(self.token())
             if self.path == "/order":
-                return self.reply(200, read_current_order(user["customer_id"]))
+                return self.reply(200, read_customer_order(user["customer_id"]))
             if self.path == "/history":
                 return self.reply(200, [{"role": "user" if m.type == "human" else "assistant", "content": m.content}
                                         for m in load_history(user["customer_id"])])

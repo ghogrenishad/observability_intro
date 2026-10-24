@@ -68,6 +68,11 @@ class HttpUiTests(unittest.TestCase):
         placed = self.post("/checkout", {"order_id": result.json()["order"]["order_id"]}, token)
         self.assertEqual(placed.status_code, 200)
         self.assertEqual(placed.json()["status"], "placed")
+        current = requests.get(self.url + "/order",
+                               headers={"Authorization": "Bearer " + token}, timeout=5)
+        self.assertEqual(current.status_code, 200)
+        self.assertEqual(current.json()["status"], "placed")
+        self.assertEqual(current.json()["items"][0]["product_id"], "cold_coffee")
         self.assertEqual(self.post("/chat", {"query": "Hi"}, "invalid").status_code, 401)
 
     def test_three_complaints_and_guard_over_http(self):

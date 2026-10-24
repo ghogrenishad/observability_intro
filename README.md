@@ -64,6 +64,8 @@ Sign-in is email-only classroom identification, not real account verification.
 The launcher always creates/appends `kiosk.log` before its model check. It prints
 the full path, marks each startup and retains previous logs. Its database is
 `kiosk.sqlite3` inside this folder, independent of all earlier databases.
+After checkout, the app and agent continue to show the most recently placed
+order until a new draft is started.
 
 ## 3. Customers report problems. Test the application
 
