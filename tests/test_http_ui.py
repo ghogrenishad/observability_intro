@@ -2,6 +2,7 @@
 import itertools
 import os
 from pathlib import Path
+import socket
 import sys
 import subprocess
 import threading
@@ -43,6 +44,20 @@ class HttpUiTests(unittest.TestCase):
     def post(self, path, payload, token=None):
         return requests.post(self.url + path, json=payload,
                              headers={"Authorization": "Bearer " + (token or self.token)}, timeout=30)
+
+    def test_embedded_api_starts_when_not_running(self):
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            port = probe.getsockname()[1]
+        server = api.ensure_api_server(port)
+        self.assertIsNotNone(server)
+        try:
+            self.assertEqual(requests.get(f"http://127.0.0.1:{port}/health", timeout=2).json()["status"], "ok")
+        finally:
+            with api._embedded_servers_lock:
+                api._embedded_servers.pop(port, None)
+            server.shutdown()
+            server.server_close()
 
     def test_http_login_chat_checkout_and_failed_auth(self):
         login = self.post("/signin", {"name": "Customer", "email": "http@example.invalid"})

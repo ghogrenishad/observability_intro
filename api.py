@@ -1,6 +1,10 @@
 """One API shared by the Streamlit customer app and Locust traffic."""
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import threading
+import time
+from urllib.error import URLError
+from urllib.request import urlopen
 from uuid import uuid4
 from config import API_PORT, initialize_database
 from logging_setup import request_logger
@@ -9,6 +13,9 @@ from database import read_menu, read_current_order, get_owned_order, mark_paid
 from agent import chat
 from failures import Failures, PolicyBlocked
 from instrumentation import span
+
+_embedded_servers = {}
+_embedded_servers_lock = threading.Lock()
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -90,6 +97,39 @@ class Handler(BaseHTTPRequestHandler):
 
     def log_message(self, *args):
         pass  # Application logs go to kiosk.log, not the terminal's HTTP access log.
+
+
+def ensure_api_server(port=API_PORT):
+    """Start an in-process API when the UI is not already using one."""
+    health_url = f"http://127.0.0.1:{port}/health"
+
+    def is_healthy():
+        try:
+            with urlopen(health_url, timeout=0.2) as response:
+                return response.status == 200
+        except (OSError, URLError):
+            return False
+
+    if is_healthy():
+        return None
+
+    with _embedded_servers_lock:
+        if is_healthy():
+            return None
+        initialize_database()
+        server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+        worker = threading.Thread(target=server.serve_forever, name="kiosk-api", daemon=True)
+        worker.start()
+        _embedded_servers[port] = server
+        for _ in range(50):
+            if is_healthy():
+                request_logger().info("Embedded API ready: http://127.0.0.1:%s", port)
+                return server
+            time.sleep(0.02)
+        server.shutdown()
+        server.server_close()
+        del _embedded_servers[port]
+        raise RuntimeError(f"Embedded API did not become ready on port {port}")
 
 
 if __name__ == "__main__":

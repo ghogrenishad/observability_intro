@@ -1,9 +1,30 @@
 """Customer-facing Streamlit chat. All state changes go through the same API as Locust."""
+import os
 import requests
 import streamlit as st
-from config import API_PORT
+from streamlit.errors import StreamlitSecretNotFoundError
 
 st.set_page_config(page_title="Corner Kiosk", page_icon="☕", layout="wide")
+
+
+def load_streamlit_secrets():
+    try:
+        secrets = st.secrets
+        for key in ("OPEN_ROUTER_API_KEY", "LANGSMITH_API_KEY", "KIOSK_TRACING",
+                    "KIOSK_ENFORCE_LIMIT"):
+            if key in secrets and key not in os.environ:
+                os.environ[key] = str(secrets[key])
+    except StreamlitSecretNotFoundError:
+        pass
+
+
+load_streamlit_secrets()
+
+from config import API_PORT
+from api import ensure_api_server
+
+ensure_api_server(API_PORT)
+
 st.markdown("""<style>
 .stApp {background:#faf8f3; color:#24352c}
 h1,h2,h3 {font-family:Georgia,serif;color:#24352c}

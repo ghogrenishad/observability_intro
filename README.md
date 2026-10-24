@@ -26,6 +26,19 @@ python -m pip install -r requirements.txt
 To recreate the environment on another machine, run
 `conda env create -f environment.yml`, then `conda activate ai-dev`.
 
+## Deploy the kiosk on Streamlit Community Cloud
+
+Choose `app.py` as the app entry point. The Streamlit UI starts its local API
+automatically when one is not already running, so `run.py` is not needed on
+Streamlit Cloud. In the app's **Settings → Secrets**, add:
+
+```toml
+OPEN_ROUTER_API_KEY = "your-openrouter-api-key"
+```
+
+The hosted filesystem and its SQLite database are local to the app instance;
+they are suitable for this teaching demo, not durable production order storage.
+
 ## 1. Generate ordinary logs in a tiny AI app
 
 ```sh
