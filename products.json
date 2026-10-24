@@ -1,0 +1,6 @@
+[
+  {"product_id": "cold_coffee", "name": "Cold Coffee", "description": "Chilled coffee with milk.", "price_paise": 12000, "stock_quantity": 20},
+  {"product_id": "paneer_tikka", "name": "Paneer Tikka", "description": "Grilled paneer with spices.", "price_paise": 22000, "stock_quantity": 12},
+  {"product_id": "veg_sandwich", "name": "Veg Sandwich", "description": "Toasted vegetable sandwich.", "price_paise": 10000, "stock_quantity": 15},
+  {"product_id": "lemonade", "name": "Lemonade", "description": "Fresh lemon drink.", "price_paise": 6000, "stock_quantity": 25}
+]

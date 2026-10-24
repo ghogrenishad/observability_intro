@@ -1,0 +1,13 @@
+__pycache__/
+.env
+.env.*
+!.env.example
+.DS_Store
+.venv/
+.pytest_cache/
+*.log
+*.jsonl
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm

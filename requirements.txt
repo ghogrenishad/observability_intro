@@ -1,0 +1,8 @@
+langchain-openai==1.7.2
+langchain-core==1.6.10
+pydantic>=2.10,<3
+python-dotenv>=1,<2
+streamlit>=1.40,<2
+requests>=2.31,<3
+locust==2.47.0
+-r opentel_examples/requirements.txt
